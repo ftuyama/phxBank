@@ -1,41 +1,30 @@
 # PhxBank
 
-Phoenix Bank application built using Erlang 19.0 and Elixir 1.5.1
+Phoenix Bank web application with very basic features of a checking account.
 
+## Requirements
 
-We are almost there! The following steps are missing:
+Phoenix Bank application built using Erlang v19.0 and Elixir v1.5.1
 
-    $ cd phxBank
-    $ cd assets && npm install && node node_modules/brunch/bin/brunch build
+You can install them using [`asdf Version Manager`](https://www.icicletech.com/blog/elixir-and-erlang-setup-with-asdf-version-manager)
 
-Then configure your database in config/dev.exs and run:
-
-    $ mix ecto.create
-
-Start your Phoenix app with:
-
-    $ mix phx.server
-
-You can also run your app inside IEx (Interactive Elixir) as:
-
-    $ iex -S mix phx.server
-
+## Installation instructions
 
 To start your Phoenix server:
 
   * Install dependencies with `mix deps.get`
   * Create and migrate your database with `mix ecto.create && mix ecto.migrate`
   * Install Node.js dependencies with `cd assets && npm install`
+  * Run seeds to create demo user with `mix run priv/repo/seeds.exs`
   * Start Phoenix endpoint with `mix phx.server`
+  * You can also run the app inside IEx (Interactive Elixir) with `iex -S mix phx.server`
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
-Ready to run in production? Please [check our deployment guides](http://www.phoenixframework.org/docs/deployment).
+## Testing
 
-## Learn more
+  * Simply run tests with `mix test`
 
-  * Official website: http://www.phoenixframework.org/
-  * Guides: http://phoenixframework.org/docs/overview
-  * Docs: https://hexdocs.pm/phoenix
-  * Mailing list: http://groups.google.com/group/phoenix-talk
-  * Source: https://github.com/phoenixframework/phoenix
+## Author
+
+Felipe Tuyama
