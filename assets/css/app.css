@@ -1,1 +1,11 @@
 /* This file is for your main application css. */
+
+/* Just inserting css anyway */
+
+ul {
+  list-style-type: none;
+}
+
+a {
+  cursor: pointer;
+}

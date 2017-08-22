@@ -1,11 +1,17 @@
 <div class="jumbotron">
-  <h2><%= gettext "Welcome to %{name}!", name: "Phoenix" %></h2>
-  <p class="lead">A productive web framework that<br />does not compromise speed and maintainability.</p>
+  <h2><%= gettext "Welcome to %{name}!", name: "phxBank" %></h2>
+  <p class="lead">Please, select your account</p>
+
+  <ul>
+    <%= for user <- @users do %>
+      <li><a><b>@<%= user.username %></b> - <%= user.name %></a></li>
+    <% end %>
+  </ul>
 </div>
 
 <div class="row marketing">
   <div class="col-lg-6">
-    <h4>Resources</h4>
+    <h4>Phoenix Resources</h4>
     <ul>
       <li>
         <a href="http://phoenixframework.org/docs/overview">Guides</a>
@@ -20,7 +26,7 @@
   </div>
 
   <div class="col-lg-6">
-    <h4>Help</h4>
+    <h4>Phoenix Help</h4>
     <ul>
       <li>
         <a href="http://groups.google.com/group/phoenix-talk">Mailing list</a>
