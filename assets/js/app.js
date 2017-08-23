@@ -19,3 +19,17 @@ import "phoenix_html"
 // paths "./socket" or full ones "web/static/js/socket".
 
 // import socket from "./socket"
+
+$("form").on("submit", function(){
+  $.ajax({
+    type: 'POST',
+    url: "mysubmitpage.php",
+    data: $('form').serialize(), 
+    success: function(response) {
+      $("#response").html("Your amazing response:\n" + response);
+    },
+    error: function(request) {
+      $("#error").html("We had some problem... :(\n" + request.responseText);
+    }
+  });
+});

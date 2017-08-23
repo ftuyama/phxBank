@@ -1,0 +1,33 @@
+/* This file is for your main application css. */
+
+/* Just inserting random scss of mine, anyway */
+
+@import "form";
+
+.user-list {
+  ul {
+    list-style-type: none;
+  }
+
+  a {
+    cursor: pointer;
+  }
+}
+
+form {
+  margin-bottom: 20px !important;
+  text-align: center;
+  button {
+    width: 33.3%;
+    margin-top: -15px;
+  }
+}
+
+.radio-label {
+  font-family: 'Open Sans';
+  color: $blue;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  vertical-align: top;
+  margin: 0 10px;
+}

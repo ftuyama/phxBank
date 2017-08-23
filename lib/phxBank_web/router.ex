@@ -13,6 +13,12 @@ defmodule PhxBankWeb.Router do
     plug :accepts, ["json"]
   end
 
+  scope "/api", PhxBankWeb do
+    pipe_through :api
+
+    post "/operation", BankController, :operation
+  end
+
   scope "/", PhxBankWeb do
     pipe_through :browser # Use the default browser stack
 
