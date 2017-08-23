@@ -4,7 +4,7 @@
 
   <ul>
     <%= for user <- @users do %>
-      <li><a><b>@<%= user.username %></b> - <%= user.name %></a></li>
+      <li><a>#<%= user.id %> <b>@<%= user.username %></b> - <%= user.name %></a></li>
     <% end %>
   </ul>
 </div>

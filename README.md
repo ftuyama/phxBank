@@ -23,6 +23,12 @@ To start your Phoenix server:
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
+## SQLite manipulation
+
+If you want a full control/view of sqlite data, I suggest using [`sqlitebrowser:4000`](http://sqlitebrowser.org/)
+
+  * One can install with `sudo apt install sqlitebrowser`
+
 ## Testing
 
   * Simply run tests with `mix test`

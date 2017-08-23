@@ -5,7 +5,7 @@ defmodule PhxBank.Repo.Migrations.CreateUser do
     create table(:users) do
       add :name, :string
       add :username, :string, null: false
-      add :money, :integer
+      add :balance, :integer
       timestamps()
     end
 

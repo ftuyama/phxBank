@@ -1,10 +1,14 @@
 defmodule PhxBank.User do
   use Ecto.Schema
+  alias PhxBank.{Balance, Transaction}
 
   schema "users" do
-    field :name
-    field :username
-    field :money,   :integer, default: 0
+    field :name, :string
+    field :username, :string
+    field :balance, :integer, default: 0
     timestamps()
+
+    has_many :balances, Balance
+    has_many :transactions, Transaction
   end
 end
