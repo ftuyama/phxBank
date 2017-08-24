@@ -6,7 +6,7 @@ defmodule PhxBank.Transaction do
     field :type, :string
     field :description, :string
     field :amount, :integer, default: 0
-    field :datetime, :naive_datetime
+    field :date, :date
 
     belongs_to :user, User
   end

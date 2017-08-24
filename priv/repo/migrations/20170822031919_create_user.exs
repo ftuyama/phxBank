@@ -8,7 +8,6 @@ defmodule PhxBank.Repo.Migrations.CreateUser do
       add :balance, :integer
       timestamps()
     end
-
     create unique_index(:users, [:username])
   end
 end

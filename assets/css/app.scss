@@ -23,6 +23,12 @@ form {
   }
 }
 
+.panel-title {
+  a {
+    display: block;
+  }
+}
+
 .radio-label {
   font-family: 'Open Sans';
   color: $blue;

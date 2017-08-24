@@ -1,13 +1,21 @@
 defmodule PhxBankWeb.BankView do
   use PhxBankWeb, :view
 
-  def render("operation.json", %{json: data}) do
+  def render("operation.json", %{user: user, transaction: transaction}) do
     %{
-      data: data
+      user_id: user.id,
+      user_name: user.name,
+      balance: user.balance,
+      transaction: %{
+        description: transaction.description,
+        type: transaction.type,
+        amount: transaction.amount,
+        date: transaction.date
+      }
     }
   end  
 
-  def render("balance.json", %{json: user}) do
+  def render("balance.json", %{user: user}) do
     %{
       user_id: user.id,
       user_name: user.name,
@@ -16,7 +24,7 @@ defmodule PhxBankWeb.BankView do
     }
   end  
 
-  def render("statement.json", %{json: user}) do
+  def render("statement.json", %{user: user}) do
     %{
       user_id: user.id,
       user_name: user.name,
@@ -25,7 +33,7 @@ defmodule PhxBankWeb.BankView do
     }
   end  
 
-  def render("periods.json", %{json: user}) do
+  def render("periods.json", %{user: user}) do
     %{
       user_id: user.id,
       user_name: user.name,

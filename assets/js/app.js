@@ -12,6 +12,7 @@
 // If you no longer want to use a dependency, remember
 // to also remove its path from "config.paths.watched".
 import "phoenix_html"
+import "bootstrap"
 
 // Import local files
 //
@@ -31,6 +32,8 @@ function validateForm() {
   type = (post === true)? "POST" : type;
 
   url = url.replace(/\/api\//, "");
+
+  data = (data === "")? undefined : JSON.parse(data);
 
   if(!url || !type) {
     alert("Fill the HTTP url/method");

@@ -7,11 +7,10 @@ defmodule PhxBank.Repo.Migrations.CreateOperationAndBalance do
       add :type, :string, null: false
       add :description, :string, null: false
       add :amount, :integer, null: false
-      add :datetime, :datetime, null: false
+      add :date, :date, null: false
     end
-
-    create unique_index(:transactions, [:user_id])
-    create unique_index(:transactions, [:datetime])
+    create index(:transactions, [:user_id])
+    create index(:transactions, [:date])
 
 
     create table(:balances) do
@@ -19,8 +18,7 @@ defmodule PhxBank.Repo.Migrations.CreateOperationAndBalance do
       add :amount, :integer, null: false
       add :date, :date, null: false
     end
-
+    create index(:balances, [:user_id])
     create unique_index(:balances, [:date])
-    create unique_index(:balances, [:user_id])
   end
 end
