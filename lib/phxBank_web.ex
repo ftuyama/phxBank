@@ -17,12 +17,19 @@ defmodule PhxBankWeb do
   and import those modules here.
   """
 
+  def model do
+    quote do
+      require IEx
+    end
+  end
+
   def controller do
     quote do
       use Phoenix.Controller, namespace: PhxBankWeb
       import Plug.Conn
       import PhxBankWeb.Router.Helpers
       import PhxBankWeb.Gettext
+      require IEx
     end
   end
 
@@ -40,6 +47,7 @@ defmodule PhxBankWeb do
       import PhxBankWeb.Router.Helpers
       import PhxBankWeb.ErrorHelpers
       import PhxBankWeb.Gettext
+      require IEx
     end
   end
 

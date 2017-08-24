@@ -20,16 +20,66 @@ import "phoenix_html"
 
 // import socket from "./socket"
 
-$("form").on("submit", function(){
-  $.ajax({
-    type: 'POST',
-    url: "mysubmitpage.php",
-    data: $('form').serialize(), 
-    success: function(response) {
-      $("#response").html("Your amazing response:\n" + response);
-    },
-    error: function(request) {
-      $("#error").html("We had some problem... :(\n" + request.responseText);
-    }
-  });
+function validateForm() {
+  var url = $("input[name=api]").val();
+  var get = $("input[name=get]").is(':checked');
+  var post = $("input[name=post]").is(':checked');
+  var data = $("textarea[name=json]").val();
+
+  var type = undefined;
+  type = (get  === true)? "GET"  : type;
+  type = (post === true)? "POST" : type;
+
+  url = url.replace(/\/api\//, "");
+
+  if(!url || !type) {
+    alert("Fill the HTTP url/method");
+    return undefined;
+  } else {
+    return {"url": "api/" + url, "type": type, "data": data};
+  }
+}
+
+$("form").on("submit", function(e) {
+  e.preventDefault();
+  var form = validateForm();
+
+  if (form) {
+    $.ajax({
+      type: form["type"],
+      url: form["url"],
+      data: form["data"], 
+      success: function(response) {
+        $("#response").html("<p>Your amazing response:</p><pre>" + syntaxHighlight(response) + "</pre>");
+        $("#error").html("");
+      },
+      error: function(request) {
+        $("#response").html("");
+        $("#error").html("<p>We had some problem... :</p>" + request.responseText);
+      }
+    });
+  }
 });
+
+/* Source https://stackoverflow.com/questions/4810841/how-can-i-pretty-print-json-using-javascript */
+function syntaxHighlight(json) {
+  if (typeof json != 'string') {
+    json = JSON.stringify(json, undefined, 2);
+  }
+  json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+    var cls = 'number';
+    if (/^"/.test(match)) {
+      if (/:$/.test(match)) {
+          cls = 'key';
+      } else {
+          cls = 'string';
+      }
+    } else if (/true|false/.test(match)) {
+      cls = 'boolean';
+    } else if (/null/.test(match)) {
+      cls = 'null';
+    }
+    return '<span class="' + cls + '">' + match + '</span>';
+  });
+}

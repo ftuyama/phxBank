@@ -16,7 +16,8 @@ defmodule PhxBankWeb.Router do
   scope "/api", PhxBankWeb do
     pipe_through :api
 
-    post "/operation", BankController, :operation
+    post "/operation",        BankController, :operation
+    get  "/balance/:user_id", BankController, :balance
   end
 
   scope "/", PhxBankWeb do
