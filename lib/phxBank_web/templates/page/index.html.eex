@@ -110,7 +110,7 @@ GET: "periods"
     <h4>phxBank Users</h4>
     <ul>
       <%= for user <- @users do %>
-        <li><a>#<%= user.id %> <b>@<%= user.username %></b> - <%= user.name %></a></li>
+        <li><a>#<%= user.id %> <b>@<%= user.username %></b> - <%= user.name %></a> (<%= user.balance %>)</li>
       <% end %>
     </ul>
   </div>

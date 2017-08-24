@@ -11,12 +11,13 @@ defmodule PhxBankWeb.PageController do
   defp maybe_create_user(users) do
     # Create default user if no one exists
     if Enum.count(users) == 0 do
-      default_user = Repo.insert!(
-        %User{
-          name:     "Felipe Tuyama", 
-          username: "ftuyama", 
-          balance:  0
-        })
+      default_user = %User{} 
+        |> User.changeset(%{
+            name:     "Felipe Tuyama", 
+            username: "ftuyama", 
+            balance:  0
+          }) 
+        |> Repo.insert!
       [default_user | users]
     else
       users
