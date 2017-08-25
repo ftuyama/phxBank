@@ -28,11 +28,8 @@ defmodule PhxBankWeb.BankController do
         current_balance = Transaction.balance_diff(transaction, user.balance)
 
         # Updates/Creates today balance
-        balance = Balance
-          |> Balance.preload_all
-          |> Repo.get_by(Balance, date: today)
+        balance = Balance |> Balance.preload_all |> Repo.get_by(date: today)
 
-        IEx.pry
         if balance == nil do
           balance = %Balance{}
             |> Balance.changeset(%{ user_id: user.id, amount: current_balance, date: today})
@@ -43,10 +40,9 @@ defmodule PhxBankWeb.BankController do
             |> Repo.update!
         end
 
-        IEx.pry
         # Updates user balance
-        user 
-          |> User.changeset(%{amount: current_balance})
+        user = user
+          |> User.changeset(%{balance: current_balance})
           |> Repo.update!
 
         render conn, "operation.json", user: user, transaction: transaction
@@ -86,7 +82,7 @@ defmodule PhxBankWeb.BankController do
   def debits(conn, %{"user_id" => user_id, "debug" => debug}) do
     try do
       user = Repo.get!(User, user_id)
-      render conn, "periods.json", user: user
+      render conn, "debits.json", user: user
     rescue
       e in ErlangError -> 
         message = error_message(e)
