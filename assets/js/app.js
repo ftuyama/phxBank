@@ -23,23 +23,19 @@ import "bootstrap"
 
 function validateForm() {
   var url = $("input[name=api]").val();
-  var get = $("input[name=get]").is(':checked');
-  var post = $("input[name=post]").is(':checked');
+  var method = $("input[name=method]:checked").val();
   var data = $("textarea[name=json]").val();
-
-  var type = undefined;
-  type = (get  === true)? "GET"  : type;
-  type = (post === true)? "POST" : type;
+  var debug = $("input[name=debug]").is(":checked");
 
   url = url.replace(/\/api\//, "");
-
-  data = (data === "")? undefined : JSON.parse(data);
-
-  if(!url || !type) {
+  data = (data === "")? {} : JSON.parse(data);
+  data["debug"] = debug;
+ 
+  if(!url || !method) {
     alert("Fill the HTTP url/method");
     return undefined;
   } else {
-    return {"url": "api/" + url, "type": type, "data": data};
+    return {"url": "api/" + url, "type": method, "data": data};
   }
 }
 
@@ -50,7 +46,7 @@ $("form").on("submit", function(e) {
   if (form) {
     $.ajax({
       type: form["type"],
-      url: form["url"],
+      url:  form["url"],
       data: form["data"], 
       success: function(response) {
         $("#response").html("<p>Your amazing response:</p><pre>" + syntaxHighlight(response) + "</pre>");

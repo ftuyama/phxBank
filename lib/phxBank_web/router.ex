@@ -18,6 +18,8 @@ defmodule PhxBankWeb.Router do
 
     post "/operation",        BankController, :operation
     get  "/balance/:user_id", BankController, :balance
+    get  "/statement",        BankController, :statement
+    get  "/debits/:user_id",  BankController, :debits
   end
 
   scope "/", PhxBankWeb do

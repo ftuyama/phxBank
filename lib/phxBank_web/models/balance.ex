@@ -10,7 +10,7 @@ defmodule PhxBank.Balance do
     belongs_to :user, User
   end
 
-  @required_fields ~w(amount date)
+  @required_fields ~w(user_id amount date)
   @optional_fields ~w()
 
   @doc """

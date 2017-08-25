@@ -1,11 +1,13 @@
 defmodule PhxBankWeb.BankController do
   use PhxBankWeb, :controller
-  alias PhxBank.{Repo, Transaction, User}
+  alias PhxBank.{Repo, Balance, Transaction, User}
 
   def operation(conn, params) do
     try do
       # A transactional operation
       Repo.transaction fn ->
+        today = Ecto.Date.utc()
+
         # Gets the user
         user = User
           |> User.preload_all
@@ -17,55 +19,92 @@ defmodule PhxBankWeb.BankController do
               user_id:     user.id, 
               description: params["transaction"]["description"], 
               type:        params["transaction"]["type"],
-              amount:      params["transaction"]["amount"] |> String.to_integer,
+              amount:      params["transaction"]["amount"] |> amount_value,
               date:        params["transaction"]["date"] |> Ecto.Date.cast!
             })
           |> Repo.insert!
 
-        # Updates/Creates today balance
+        # Calculates current user balance
+        current_balance = Transaction.balance_diff(transaction, user.balance)
 
+        # Updates/Creates today balance
+        balance = Balance
+          |> Balance.preload_all
+          |> Repo.get_by(Balance, date: today)
+
+        IEx.pry
+        if balance == nil do
+          balance = %Balance{}
+            |> Balance.changeset(%{ user_id: user.id, amount: current_balance, date: today})
+            |> Repo.insert!
+        else
+          balance = balance 
+            |> Balance.changeset(%{amount: current_balance})
+            |> Repo.update!
+        end
+
+        IEx.pry
         # Updates user balance
         user 
-          |> User.changeset(%{
-              amount: Transaction.balance_diff(transaction, user.balance)
-            })
-          |> User.update!
+          |> User.changeset(%{amount: current_balance})
+          |> Repo.update!
 
         render conn, "operation.json", user: user, transaction: transaction
       end
     rescue
-      e in ErlangError -> message = "Error: #{e.message}"
-      conn |> put_status(500) |> text(message)
+      e in ErlangError -> 
+        message = error_message(e)
+        if params["debug"] == "true", do: raise e
+        conn |> put_status(500) |> text(message)
     end
   end  
 
-  def balance(conn, %{"user_id" => user_id}) do
+  def balance(conn, %{"user_id" => user_id, "debug" => debug}) do
     try do
       user = Repo.get!(User, user_id)
       render conn, "balance.json", user: user
     rescue
-      e in ErlangError -> message = "Error: #{e.message}"
-      conn |> put_status(500) |> text(message)
+      e in ErlangError -> 
+        message = error_message(e)
+        if debug == "true", do: raise e
+        conn |> put_status(500) |> text(message)
     end
   end
 
-  def statement(conn, %{"user_id" => user_id}) do
+  def statement(conn, %{"user_id" => user_id, "debug" => debug}) do
     try do
       user = Repo.get!(User, user_id)
       render conn, "statement.json", user: user
     rescue
-      e in ErlangError -> message = "Error: #{e.message}"
-      conn |> put_status(500) |> text(message)
+      e in ErlangError -> 
+        message = error_message(e)
+        if debug == "true", do: raise e
+        conn |> put_status(500) |> text(message)
     end
   end
 
-  def periods(conn, %{"user_id" => user_id}) do
+  def debits(conn, %{"user_id" => user_id, "debug" => debug}) do
     try do
       user = Repo.get!(User, user_id)
       render conn, "periods.json", user: user
     rescue
-      e in ErlangError -> message = "Error: #{e.message}"
-      conn |> put_status(500) |> text(message)
+      e in ErlangError -> 
+        message = error_message(e)
+        if debug == "true", do: raise e
+        conn |> put_status(500) |> text(message)
     end
+  end
+
+  defp amount_value(amount) do
+    case Float.parse(amount) do
+      {num, ""} ->
+        num |> Kernel.*(100) |> Kernel.round
+      _ ->
+        raise "Invalid amount"
+    end
+  end
+
+  defp error_message(e) do
+    if Map.get(e, "message"), do: "Error: #{e.message}", else: Exception.message(e)
   end
 end

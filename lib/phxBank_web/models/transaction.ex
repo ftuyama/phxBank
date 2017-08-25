@@ -12,7 +12,7 @@ defmodule PhxBank.Transaction do
     belongs_to :user, User
   end
 
-  @required_fields ~w(type description amount date)
+  @required_fields ~w(user_id type description amount date)
   @optional_fields ~w()
 
   @doc """
@@ -24,6 +24,7 @@ defmodule PhxBank.Transaction do
   def changeset(model, params \\ %{}) do
     model
     |> cast(params, @required_fields, @optional_fields)
+    |> validate_inclusion(:type, ["debit", "credit"], message: "Type should be either credit or debit")
   end
 
   def preload_all(query) do

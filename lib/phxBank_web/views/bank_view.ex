@@ -5,11 +5,12 @@ defmodule PhxBankWeb.BankView do
     %{
       user_id: user.id,
       user_name: user.name,
-      balance: user.balance,
+      balance: user.balance / 100.0,
       transaction: %{
+        id: transaction.id,
         description: transaction.description,
         type: transaction.type,
-        amount: transaction.amount,
+        amount: transaction.amount / 100.0,
         date: transaction.date
       }
     }
@@ -19,7 +20,7 @@ defmodule PhxBankWeb.BankView do
     %{
       user_id: user.id,
       user_name: user.name,
-      balance: user.balance,
+      balance: user.balance / 100.0,
       updated_at: user.updated_at
     }
   end  
@@ -28,16 +29,16 @@ defmodule PhxBankWeb.BankView do
     %{
       user_id: user.id,
       user_name: user.name,
-      balance: user.balance,
+      balance: user.balance / 100.0,
       updated_at: user.updated_at
     }
   end  
 
-  def render("periods.json", %{user: user}) do
+  def render("debits.json", %{user: user}) do
     %{
       user_id: user.id,
       user_name: user.name,
-      balance: user.balance,
+      balance: user.balance / 100.0,
       updated_at: user.updated_at
     }
   end
