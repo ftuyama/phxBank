@@ -6,12 +6,25 @@ defmodule PhxBankWeb.BankController do
     try do
       # A transactional operation
       Repo.transaction fn ->
-        today = Ecto.Date.utc()
-
         # Gets the user
         user = User
           |> User.preload_all
           |> Repo.get!(params["user_id"])
+
+        # Checks if transaction date is in the past
+        transaction_date = params["transaction"]["date"] |> Ecto.Date.cast!
+        most_recent_balance = 
+          Repo.one(from b in Balance, order_by: [desc: b.date], limit: 1)
+
+        if transaction_date < most_recent_balance do
+          # A daily balance is generated each day.
+          # Adding a transaction in the past makes it necessary to
+          #   recalculate (correct) all the following days.
+          # Using this strategy saves time when calculating the balance
+          #   along a large amount of transactions, but has this little problem.
+          # I'm not implementing this now, just documenting here, lol
+          raise "Transaction can't occur in the past"
+        end
 
         # Generates a new Transaction
         transaction = %Transaction{}
@@ -28,14 +41,14 @@ defmodule PhxBankWeb.BankController do
         current_balance = Transaction.balance_diff(transaction, user.balance)
 
         # Updates/Creates today balance
-        balance = Balance |> Balance.preload_all |> Repo.get_by(date: today)
+        balance = Balance |> Balance.preload_all |> Repo.get_by(date: transaction.date)
 
         if balance == nil do
-          balance = %Balance{}
-            |> Balance.changeset(%{ user_id: user.id, amount: current_balance, date: today})
+          %Balance{}
+            |> Balance.changeset(%{ user_id: user.id, amount: current_balance, date: transaction.date})
             |> Repo.insert!
         else
-          balance = balance 
+          balance 
             |> Balance.changeset(%{amount: current_balance})
             |> Repo.update!
         end
@@ -67,26 +80,59 @@ defmodule PhxBankWeb.BankController do
     end
   end
 
-  def statement(conn, %{"user_id" => user_id, "debug" => debug}) do
+  def statement(conn, params) do
     try do
-      user = Repo.get!(User, user_id)
-      render conn, "statement.json", user: user
+      # Statement parameters
+      user = Repo.get!(User, params["user_id"])
+      start_date = params["start"]  |> Ecto.Date.cast!
+      end_date   = params["end"]    |> Ecto.Date.cast!
+
+      # Gets all statement data
+      transactions = 
+        (from t in Transaction, 
+          where:  t.date >= ^start_date,
+          where:  t.date <= ^end_date,
+          where:  t.user_id == ^user.id,
+          select: t)
+        |> Repo.all
+        |> Enum.group_by( &Map.get(&1, :date) )
+
+      balances = 
+        (from b in Balance,
+          where:    b.date >= ^start_date,
+          where:    b.date <= ^end_date,
+          where:    b.user_id == ^user.id,
+          order_by: b.date,
+          select:   b)
+        |> Repo.all
+
+      render conn, "statement.json", transactions: transactions, balances: balances
     rescue
       e in ErlangError -> 
         message = error_message(e)
-        if debug == "true", do: raise e
+        if params["debug"] == "true", do: raise e
         conn |> put_status(500) |> text(message)
     end
   end
 
-  def debits(conn, %{"user_id" => user_id, "debug" => debug}) do
+  def debits(conn, params) do
     try do
-      user = Repo.get!(User, user_id)
-      render conn, "debits.json", user: user
+      # The daily balance strategy simplifies the work a lot now
+      user = Repo.get!(User, params["user_id"])
+
+      debits = 
+        (from b in Balance,
+          where:    b.user_id == ^user.id,
+          where:    b.amount < 0,
+          order_by: b.date,
+          select:   b)
+        |> Repo.all
+
+      render conn, "debits.json", debits: debits
     rescue
       e in ErlangError -> 
         message = error_message(e)
-        if debug == "true", do: raise e
+        if params["debug"] == "true", do: raise e
         conn |> put_status(500) |> text(message)
     end
   end

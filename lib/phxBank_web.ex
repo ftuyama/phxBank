@@ -34,6 +34,7 @@ defmodule PhxBankWeb do
       import Plug.Conn
       import PhxBankWeb.Router.Helpers
       import PhxBankWeb.Gettext
+      import Ecto.Query
       require IEx
     end
   end

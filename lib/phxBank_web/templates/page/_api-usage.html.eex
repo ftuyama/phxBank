@@ -26,7 +26,7 @@
         <div class="col-lg-6">
           <h4>Task #2 - Balance API</h4>
           <pre>
-<b>GET</b>: "balance/1"
+<b>GET</b>: "balance/:user_id"
           </pre>
         </div>
 
@@ -45,7 +45,7 @@
         <div class="col-lg-6">
           <h4>Task #4 - Debit Periods API</h4>
           <pre>
-<b>GET</b>: "debits/1"
+<b>GET</b>: "debits/:user_id"
           </pre>
         </div>
       </div>
