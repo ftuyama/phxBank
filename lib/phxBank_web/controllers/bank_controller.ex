@@ -117,7 +117,7 @@ defmodule PhxBankWeb.BankController do
 
   def debits(conn, params) do
     try do
-      # The daily balance strategy simplifies the work a lot now
+      # The daily balance strategy simplifies a lot our job now
       user = Repo.get!(User, params["user_id"])
 
       debits = 
@@ -128,7 +128,22 @@ defmodule PhxBankWeb.BankController do
           select:   b)
         |> Repo.all
 
-      render conn, "debits.json", debits: debits
+      # Maps debit balances to debit periods
+      debits_list = Enum.reduce(debits, [], fn (d, list) ->
+        current_debit = List.first(list)
+        if current_debit == nil || d.amount != current_debit.amount do
+          # Debit period is closed
+          if current_debit != nil do
+            list = list
+              |> List.replace_at(0, Map.merge(current_debit, %{end_date: d.date}))
+          end
+          # New debit period detected
+          new_debit = %{amount: d.amount, start_date: d.date}
+          [new_debit | list]
+        end
+      end)
+
+      render conn, "debits.json", debits: debits_list
     rescue
       e in ErlangError -> 
         message = error_message(e)

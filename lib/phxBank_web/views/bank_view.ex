@@ -40,8 +40,7 @@ defmodule PhxBankWeb.BankView do
     statements
   end  
 
-  def render("debits.json", %{debits: debits}) do
-    %{
-    }
+  def render("debits.json", %{debits: debits_list}) do
+    debits_list
   end
 end
