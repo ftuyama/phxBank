@@ -14,10 +14,8 @@ defmodule PhxBankWeb.BankController do
 
           # Checks if transaction date is in the past
           transaction_date = params["transaction"]["date"] |> Ecto.Date.cast!
-          most_recent_balance = 
-            Repo.one(from b in Balance, order_by: [desc: b.date], limit: 1)
-
-          if most_recent_balance != nil && transaction_date > most_recent_balance do
+          
+          if in_the_past(transaction_date) do
             # A daily balance is generated each day.
             # Adding a transaction in the past makes it necessary to
             #   recalculate (correct) all the following days.
@@ -135,17 +133,22 @@ defmodule PhxBankWeb.BankController do
         # Account balance has changed
         if current_debit == nil || d.amount != current_debit.amount do
           # Debit period is closed
-          if current_debit != nil && Map.get(current_debit, :end_date) == nil do
-            list = list
-              |> List.replace_at(0, Map.merge(current_debit, %{end_date: day_before(d.date)}))
-          end
+          list =
+            if current_debit != nil && Map.get(current_debit, :end_date) == nil do
+              current_debit = Map.merge(current_debit, %{end_date: day_before(d.date)})
+              List.replace_at(list, 0, current_debit)
+            else
+              list
+            end
           # New debit period detected
-          if d.amount < 0 do
-            new_debit = %{amount: d.amount / 100.0, start_date: d.date}
-            list = [new_debit | list]
-          end
+          list =
+            if d.amount < 0 do
+              new_debit = %{amount: d.amount / 100.0, start_date: d.date}
+              [new_debit | list]
+            else
+              list
+            end
         end
-        list
       end)
 
       render conn, "debits.json", debits: debits_list
@@ -155,6 +158,19 @@ defmodule PhxBankWeb.BankController do
         if params["debug"] == "true", do: raise e
         conn |> put_status(500) |> text(message)
     end
+  end
+
+  # Util functions
+
+  defp in_the_past(transaction_date) do
+    most_recent_balance = 
+      Repo.one(from b in Balance, order_by: [desc: b.date], limit: 1)
+
+    most_recent_balance != nil && 
+      most_recent_balance
+        |> Map.get(:date)
+        |> Ecto.Date.cast! 
+        |> Ecto.Date.compare(transaction_date) == :gt
   end
 
   defp day_before(date) do
