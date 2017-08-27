@@ -5,61 +5,63 @@ defmodule PhxBankWeb.BankController do
   def operation(conn, params) do
     try do
       # A transactional operation
-      Repo.transaction fn ->
-        # Gets the user
-        user = User
-          |> User.preload_all
-          |> Repo.get!(params["user_id"])
+      {:ok, %{user: user, transaction: transaction}} = 
+        Repo.transaction fn ->
+          # Gets the user
+          user = User
+            |> User.preload_all
+            |> Repo.get!(params["user_id"])
 
-        # Checks if transaction date is in the past
-        transaction_date = params["transaction"]["date"] |> Ecto.Date.cast!
-        most_recent_balance = 
-          Repo.one(from b in Balance, order_by: [desc: b.date], limit: 1)
+          # Checks if transaction date is in the past
+          transaction_date = params["transaction"]["date"] |> Ecto.Date.cast!
+          most_recent_balance = 
+            Repo.one(from b in Balance, order_by: [desc: b.date], limit: 1)
 
-        if transaction_date > most_recent_balance do
-          # A daily balance is generated each day.
-          # Adding a transaction in the past makes it necessary to
-          #   recalculate (correct) all the following days.
-          # Using this strategy saves time when calculating the balance
-          #   along a large amount of transactions, but has this little problem.
-          # I'm not implementing this now, just documenting here, lol
-          raise "Transaction can't occur in the past"
-        end
+          if most_recent_balance != nil && transaction_date > most_recent_balance do
+            # A daily balance is generated each day.
+            # Adding a transaction in the past makes it necessary to
+            #   recalculate (correct) all the following days.
+            # Using this strategy saves time when calculating the balance
+            #   along a large amount of transactions, but has this little problem.
+            # I'm not implementing this now, just documenting here, lol
+            raise "Transaction can't occur in the past"
+          end
 
-        # Generates a new Transaction
-        transaction = %Transaction{}
-          |> Transaction.changeset(%{
-              user_id:     user.id, 
-              description: params["transaction"]["description"], 
-              type:        params["transaction"]["type"],
-              amount:      params["transaction"]["amount"] |> amount_value,
-              date:        params["transaction"]["date"] |> Ecto.Date.cast!
-            })
-          |> Repo.insert!
-
-        # Calculates current user balance
-        current_balance = Transaction.balance_diff(transaction, user.balance)
-
-        # Updates/Creates today balance
-        balance = Balance |> Balance.preload_all |> Repo.get_by(date: transaction.date)
-
-        if balance == nil do
-          %Balance{}
-            |> Balance.changeset(%{ user_id: user.id, amount: current_balance, date: transaction.date})
+          # Generates a new Transaction
+          transaction = %Transaction{}
+            |> Transaction.changeset(%{
+                user_id:     user.id, 
+                description: params["transaction"]["description"], 
+                type:        params["transaction"]["type"],
+                amount:      params["transaction"]["amount"] |> amount_value,
+                date:        params["transaction"]["date"] |> Ecto.Date.cast!
+              })
             |> Repo.insert!
-        else
-          balance 
-            |> Balance.changeset(%{amount: current_balance})
+
+          # Calculates current user balance
+          current_balance = Transaction.balance_diff(transaction, user.balance)
+
+          # Updates/Creates today balance
+          balance = Balance |> Balance.preload_all |> Repo.get_by(date: transaction.date)
+
+          if balance == nil do
+            %Balance{}
+              |> Balance.changeset(%{ user_id: user.id, amount: current_balance, date: transaction.date})
+              |> Repo.insert!
+          else
+            balance 
+              |> Balance.changeset(%{amount: current_balance})
+              |> Repo.update!
+          end
+
+          # Updates user balance
+          user = user
+            |> User.changeset(%{balance: current_balance})
             |> Repo.update!
+
+          %{user: user, transaction: transaction}
         end
-
-        # Updates user balance
-        user = user
-          |> User.changeset(%{balance: current_balance})
-          |> Repo.update!
-
-        render conn, "operation.json", user: user, transaction: transaction
-      end
+      render conn, "operation.json", user: user, transaction: transaction
     rescue
       e in ErlangError -> 
         message = error_message(e)
@@ -68,14 +70,14 @@ defmodule PhxBankWeb.BankController do
     end
   end  
 
-  def balance(conn, %{"user_id" => user_id, "debug" => debug}) do
+  def balance(conn, params) do
     try do
-      user = Repo.get!(User, user_id)
+      user = Repo.get!(User, params["user_id"])
       render conn, "balance.json", user: user
     rescue
       e in ErlangError -> 
         message = error_message(e)
-        if debug == "true", do: raise e
+        if params["debug"] == "true", do: raise e
         conn |> put_status(500) |> text(message)
     end
   end

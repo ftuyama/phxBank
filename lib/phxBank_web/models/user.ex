@@ -13,8 +13,7 @@ defmodule PhxBank.User do
     has_many :transactions, Transaction
   end
 
-  @required_fields ~w(name username)
-  @optional_fields ~w(balance)
+  @fields ~w(name username balance)
 
   @doc """
   Creates a changeset based on the `model` and `params`.
@@ -24,7 +23,7 @@ defmodule PhxBank.User do
   """
   def changeset(model, params \\ %{}) do
     model
-    |> cast(params, @required_fields, @optional_fields)
+    |> cast(params, @fields)
     |> slugify_username()
     |> validate_length(:username, min: 5)
     |> unique_constraint(:username, message: "Username already taken")
