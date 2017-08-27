@@ -16,7 +16,7 @@ defmodule PhxBankWeb.BankController do
         most_recent_balance = 
           Repo.one(from b in Balance, order_by: [desc: b.date], limit: 1)
 
-        if transaction_date < most_recent_balance do
+        if transaction_date > most_recent_balance do
           # A daily balance is generated each day.
           # Adding a transaction in the past makes it necessary to
           #   recalculate (correct) all the following days.
@@ -123,7 +123,6 @@ defmodule PhxBankWeb.BankController do
       debits = 
         (from b in Balance,
           where:    b.user_id == ^user.id,
-          where:    b.amount < 0,
           order_by: b.date,
           select:   b)
         |> Repo.all
@@ -131,16 +130,20 @@ defmodule PhxBankWeb.BankController do
       # Maps debit balances to debit periods
       debits_list = Enum.reduce(debits, [], fn (d, list) ->
         current_debit = List.first(list)
+        # Account balance has changed
         if current_debit == nil || d.amount != current_debit.amount do
           # Debit period is closed
-          if current_debit != nil do
+          if current_debit != nil && Map.get(current_debit, :end_date) == nil do
             list = list
-              |> List.replace_at(0, Map.merge(current_debit, %{end_date: d.date}))
+              |> List.replace_at(0, Map.merge(current_debit, %{end_date: day_before(d.date)}))
           end
           # New debit period detected
-          new_debit = %{amount: d.amount, start_date: d.date}
-          [new_debit | list]
+          if d.amount < 0 do
+            new_debit = %{amount: d.amount / 100.0, start_date: d.date}
+            list = [new_debit | list]
+          end
         end
+        list
       end)
 
       render conn, "debits.json", debits: debits_list
@@ -150,6 +153,10 @@ defmodule PhxBankWeb.BankController do
         if params["debug"] == "true", do: raise e
         conn |> put_status(500) |> text(message)
     end
+  end
+
+  defp day_before(date) do
+    Timex.subtract(date, Timex.Duration.from_days(1))
   end
 
   defp amount_value(amount) do

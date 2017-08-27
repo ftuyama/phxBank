@@ -26,18 +26,17 @@ defmodule PhxBankWeb.BankView do
   end  
 
   def render("statement.json", %{transactions: transactions, balances: balances}) do
-    statements = balances
+    balances
       |> Enum.map(fn b -> %{
           date: b.date,
           balance: b.amount / 100.0,
-          transactions: transactions[b.date] |> Enum.map(fn t -> %{
+          transactions: (transactions[b.date] || %{}) |> Enum.map(fn t -> %{
             id: t.id,
             type: t.type,
             description: t.description,
-            amount: t.amount
+            amount: t.amount / 100.0
           } end)
         } end)
-    statements
   end  
 
   def render("debits.json", %{debits: debits_list}) do
